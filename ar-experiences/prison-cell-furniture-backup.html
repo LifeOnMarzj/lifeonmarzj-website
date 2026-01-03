@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prison Cell AR Experience</title>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        .instructions {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 14px;
+            text-align: center;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="instructions" id="instructions">
+        Point your camera at the marker to view the prison cell
+    </div>
+
+    <a-scene
+        mindar-image="imageTargetSrc: ../assets/targets/prison-cell-marker.mind; autoStart: true; uiScanning: no;"
+        color-space="sRGB"
+        renderer="colorManagement: true, physicallyCorrectLights"
+        vr-mode-ui="enabled: false"
+        device-orientation-permission-ui="enabled: false">
+
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+        <a-light type="ambient" intensity="0.8"></a-light>
+        <a-light type="directional" position="2 4 2" intensity="1"></a-light>
+
+        <a-entity id="target-marker" mindar-image-target="targetIndex: 0">
+            <a-entity id="prison-cell" position="0 0 0">
+
+                <!-- FURNITURE ONLY - Real prison cell has walls already! -->
+                <!-- Marker is on ground, so Y=0 is ground level -->
+
+                <!-- Bed (right wall, near window) - 30cm high -->
+                <a-box position="1.05 0.15 -1.45" width="0.9" height="0.3" depth="2" color="#8b7355"></a-box>
+
+                <!-- Toilet (left corner, near door) - 20cm high -->
+                <a-box position="-0.9 0.2 1.6" width="0.4" height="0.4" depth="0.5" color="#ffffff"></a-box>
+
+                <!-- Table (left wall) - 40cm high -->
+                <a-entity position="-1 0 0">
+                    <a-box position="0 0 0" width="0.6" height="0.05" depth="0.8" color="#8b7355"></a-box>
+                    <a-box position="-0.25 -0.2 -0.35" width="0.05" height="0.4" depth="0.05" color="#8b7355"></a-box>
+                    <a-box position="0.25 -0.2 -0.35" width="0.05" height="0.4" depth="0.05" color="#8b7355"></a-box>
+                    <a-box position="-0.25 -0.2 0.35" width="0.05" height="0.4" depth="0.05" color="#8b7355"></a-box>
+                    <a-box position="0.25 -0.2 0.35" width="0.05" height="0.4" depth="0.05" color="#8b7355"></a-box>
+                </a-entity>
+
+                <!-- Chair -->
+                <a-entity position="-0.7 0.25 0.5" rotation="0 90 0">
+                    <a-box position="0 0 0" width="0.4" height="0.05" depth="0.4" color="#8b7355"></a-box>
+                    <a-box position="0 0.25 -0.175" width="0.4" height="0.4" depth="0.05" color="#8b7355"></a-box>
+                    <a-box position="-0.15 -0.125 -0.15" width="0.05" height="0.25" depth="0.05" color="#8b7355"></a-box>
+                    <a-box position="0.15 -0.125 -0.15" width="0.05" height="0.25" depth="0.05" color="#8b7355"></a-box>
+                    <a-box position="-0.15 -0.125 0.15" width="0.05" height="0.25" depth="0.05" color="#8b7355"></a-box>
+                    <a-box position="0.15 -0.125 0.15" width="0.05" height="0.25" depth="0.05" color="#8b7355"></a-box>
+                </a-entity>
+
+            </a-entity>
+        </a-entity>
+
+    </a-scene>
+
+    <script>
+        const sceneEl = document.querySelector('a-scene');
+        const targetMarker = document.querySelector('#target-marker');
+        const prisonCell = document.querySelector('#prison-cell');
+        const instructions = document.getElementById('instructions');
+        let isAnchored = false;
+        let anchorTimeout;
+
+        targetMarker.addEventListener('targetFound', () => {
+            console.log('Target found!');
+            instructions.textContent = 'Furniture visible! Keep looking at marker...';
+
+            // For now, just keep furniture attached to marker
+            // World anchoring was causing issues
+        });
+
+        targetMarker.addEventListener('targetLost', () => {
+            console.log('Target lost');
+            instructions.textContent = 'Point at marker to see furniture';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,2 @@
+This is a test file in assets/targets folder.
+If you can see this, the folder structure is uploading correctly.

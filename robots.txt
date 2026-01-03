@@ -1,0 +1,11 @@
+# Robots.txt for lifeonmarzj.com
+# Hide AR experience from search engines
+
+User-agent: *
+Allow: /
+Disallow: /ar-experiences/
+
+# Allow specific files
+Allow: /css/
+Allow: /js/
+Allow: /assets/

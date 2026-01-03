@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Out Of Reach - Prison Cell Experience</title>
+
+  <!-- A-Frame Library -->
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    /* Permission Overlay */
+    #permissionOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 50%, #16213e 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      color: white;
+    }
+
+    #permissionMessage {
+      text-align: center;
+      padding: 40px;
+      max-width: 500px;
+      animation: fadeIn 1s ease-in;
+    }
+
+    #permissionMessage h2 {
+      font-size: 2.5em;
+      margin-bottom: 15px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    #permissionMessage .subtitle {
+      font-size: 0.9em;
+      margin-bottom: 30px;
+      opacity: 0.7;
+      font-style: italic;
+    }
+
+    #permissionMessage p {
+      font-size: 1.1em;
+      margin-bottom: 35px;
+      opacity: 0.9;
+      line-height: 1.6;
+    }
+
+    #startButton {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      padding: 18px 45px;
+      font-size: 1.1em;
+      border-radius: 50px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    #startButton:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+    }
+
+    #startButton:active {
+      transform: translateY(0);
+    }
+
+    /* Orientation Overlay */
+    #orientationOverlay {
+      z-index: 998;
+      height: 100%;
+      width: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #message {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 80%;
+      max-width: 400px;
+      color: white;
+      font-size: 1.2em;
+      text-align: center;
+    }
+
+    #message img {
+      margin-bottom: 20px;
+      animation: rotate-phone 2s ease-in-out infinite;
+    }
+
+    @keyframes rotate-phone {
+      0%, 100% {
+        transform: rotate(0deg);
+      }
+      50% {
+        transform: rotate(90deg);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Hide overlays when not needed */
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <!-- Portrait Mode Overlay -->
+  <div id="orientationOverlay">
+    <div id="message">
+      <img src="../assets/rotate.svg" width="100px" alt="Rotate phone" onerror="this.style.display='none'" />
+      Please rotate the phone to portrait mode for the best experience.
+    </div>
+  </div>
+
+  <!-- Permission Request Overlay -->
+  <div id="permissionOverlay">
+    <div id="permissionMessage">
+      <h2>Out Of Reach</h2>
+      <p class="subtitle">An Immersive Sky Experience</p>
+      <p>Look up at the ceiling to break through the boundaries of this space and explore the cosmos beyond.</p>
+      <button id="startButton">Begin Journey</button>
+    </div>
+  </div>
+
+  <!-- A-Frame Scene -->
+  <a-scene
+    renderer="colorManagement: true; antialias: true"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false">
+
+    <a-assets>
+      <img id="skyTexture" src="../assets/space.png" crossorigin="anonymous">
+      <img id="cubeTexture" src="https://cdn.8thwall.com/web/assets/cube-texture.png" crossorigin="anonymous">
+    </a-assets>
+
+    <!-- Camera with look controls -->
+    <a-camera
+      position="0 1.6 0"
+      look-controls="enabled: true; touchEnabled: true"
+      wasd-controls="enabled: false">
+    </a-camera>
+
+    <!-- Sky with space texture -->
+    <a-sky
+      src="#skyTexture"
+      rotation="0 0 0"
+      material="fog: false">
+    </a-sky>
+
+    <!-- Floating Purple Box - "Out Of Reach" -->
+    <a-box
+      position="0 10 -10"
+      scale="5 5 5"
+      rotation="0 45 0"
+      material="color: #AD50FF; src: #cubeTexture; metalness: 0.3; roughness: 0.7"
+      animation="property: rotation; to: 0 405 0; loop: true; dur: 10000; easing: linear"
+      animation__float="property: position; to: 0 12 -10; dir: alternate; loop: true; dur: 4000; easing: easeInOutSine">
+    </a-box>
+
+    <!-- Additional floating objects for depth -->
+    <a-sphere
+      position="8 15 -15"
+      radius="2"
+      material="color: #4CC3D9; metalness: 0.5; roughness: 0.5"
+      animation="property: rotation; to: 360 360 0; loop: true; dur: 20000; easing: linear"
+      animation__float="property: position; to: 8 13 -15; dir: alternate; loop: true; dur: 5000; easing: easeInOutSine">
+    </a-sphere>
+
+    <a-cylinder
+      position="-7 18 -20"
+      radius="1.5"
+      height="4"
+      material="color: #FFC65D; metalness: 0.4; roughness: 0.6"
+      rotation="45 0 45"
+      animation="property: rotation; to: 405 360 405; loop: true; dur: 15000; easing: linear"
+      animation__float="property: position; to: -7 16 -20; dir: alternate; loop: true; dur: 6000; easing: easeInOutSine">
+    </a-cylinder>
+
+    <!-- Ambient Light -->
+    <a-entity light="type: ambient; intensity: 0.8"></a-entity>
+
+    <!-- Directional Light -->
+    <a-entity light="type: directional; intensity: 0.6" position="1 1 0"></a-entity>
+
+    <!-- Point lights for atmosphere -->
+    <a-entity light="type: point; intensity: 0.5; color: #AD50FF" position="0 10 -10"></a-entity>
+    <a-entity light="type: point; intensity: 0.3; color: #4CC3D9" position="8 15 -15"></a-entity>
+  </a-scene>
+
+  <script>
+    // Out Of Reach - Device orientation and permission handling
+    const permissionOverlay = document.getElementById('permissionOverlay');
+    const orientationOverlay = document.getElementById('orientationOverlay');
+    const startButton = document.getElementById('startButton');
+
+    // Check device orientation (portrait vs landscape)
+    function checkOrientation() {
+      const orientation = window.orientation || 0;
+
+      // Portrait mode (0 or 180)
+      if (orientation === 0 || orientation === 180) {
+        orientationOverlay.classList.add('hidden');
+      }
+      // Landscape mode (90 or -90)
+      else if (orientation === 90 || orientation === -90) {
+        orientationOverlay.classList.remove('hidden');
+      }
+    }
+
+    // Request device orientation permissions (iOS 13+)
+    async function requestPermissions() {
+      try {
+        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+          // iOS 13+ requires explicit permission
+          const permission = await DeviceOrientationEvent.requestPermission();
+
+          if (permission === 'granted') {
+            startExperience();
+          } else {
+            alert('Device orientation permission is required for this experience.');
+          }
+        } else {
+          // Android or older iOS - no permission needed
+          startExperience();
+        }
+      } catch (error) {
+        console.error('Error requesting device orientation permission:', error);
+        // Try to start anyway on non-iOS devices
+        startExperience();
+      }
+    }
+
+    // Start the AR experience
+    function startExperience() {
+      // Hide permission overlay
+      permissionOverlay.classList.add('hidden');
+
+      // Check orientation
+      checkOrientation();
+
+      // Enable orientation change listener
+      window.addEventListener('orientationchange', checkOrientation);
+
+      // Also listen to resize as backup
+      window.addEventListener('resize', checkOrientation);
+
+      console.log('Out Of Reach - Experience started');
+    }
+
+    // Start button click handler
+    startButton.addEventListener('click', requestPermissions);
+
+    // Prevent body scroll on mobile
+    document.body.addEventListener('touchmove', function(e) {
+      e.preventDefault();
+    }, { passive: false });
+  </script>
+</body>
+</html>
