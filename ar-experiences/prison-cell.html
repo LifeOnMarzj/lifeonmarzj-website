@@ -100,14 +100,16 @@
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.7);
       color: white;
-      padding: 15px 25px;
-      border-radius: 10px;
-      font-size: 14px;
+      padding: 12px 20px;
+      border-radius: 25px;
+      font-size: 13px;
       text-align: center;
       z-index: 1000;
       backdrop-filter: blur(10px);
+      max-width: 80%;
+      pointer-events: none;
     }
 
     @keyframes fadeIn {
@@ -166,14 +168,14 @@
     <!-- AR Content anchored to floor marker -->
     <a-entity id="target-marker" mindar-image-target="targetIndex: 0">
 
-      <!-- Sky plane positioned at ceiling height (simplified for mobile) -->
+      <!-- Sky plane positioned at ceiling height (large and visible) -->
       <a-plane
         id="sky-plane"
-        width="10"
-        height="10"
-        position="0 3 0"
+        width="20"
+        height="20"
+        position="0 2.5 0"
         rotation="-90 0 0"
-        material="src: #skyTexture; fog: false; transparent: true; opacity: 0.9; side: double">
+        material="src: #skyTexture; fog: false; transparent: false; opacity: 1; side: double">
       </a-plane>
 
       <!-- Floating Purple Box - "Out Of Reach" (above marker) -->
@@ -231,22 +233,22 @@
     sceneEl.addEventListener('loaded', () => {
       const targetMarker = document.querySelector('#target-marker');
 
-      // Marker found - update instructions
+      // Marker found - hide instructions immediately
       targetMarker.addEventListener('targetFound', () => {
         console.log('Floor marker found!');
-        instructions.textContent = '✅ Marker found! Look up to see space above';
-        instructions.style.background = 'rgba(76, 195, 217, 0.9)';
+        instructions.textContent = '✅ Marker found! Move around to explore';
+        instructions.style.background = 'rgba(76, 195, 217, 0.8)';
         setTimeout(() => {
           instructions.classList.add('hidden');
-        }, 3000);
+        }, 2000);
       });
 
       // Marker lost - show instructions again
       targetMarker.addEventListener('targetLost', () => {
         console.log('Marker lost');
         instructions.classList.remove('hidden');
-        instructions.style.background = 'rgba(0, 0, 0, 0.8)';
-        instructions.textContent = '👆 Point camera at the marker on the floor';
+        instructions.style.background = 'rgba(0, 0, 0, 0.7)';
+        instructions.textContent = 'Point camera at the floor marker';
       });
     });
 
