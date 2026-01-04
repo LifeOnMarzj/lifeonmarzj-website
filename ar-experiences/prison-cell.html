@@ -144,11 +144,12 @@
 
   <!-- A-Frame Scene with MindAR -->
   <a-scene
-    mindar-image="imageTargetSrc: ../assets/targets/prison-cell-marker.mind; autoStart: false; uiScanning: no;"
+    mindar-image="imageTargetSrc: ../assets/targets/prison-cell-marker.mind; autoStart: true; uiScanning: no; filterMinCF: 0.0001; filterBeta: 0.001;"
     color-space="sRGB"
-    renderer="colorManagement: true; physicallyCorrectLights: true"
+    renderer="colorManagement: true; physicallyCorrectLights: true; alpha: false"
     vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: false">
+    device-orientation-permission-ui="enabled: false"
+    embedded>
 
     <a-assets>
       <img id="skyTexture" src="../assets/space.png" crossorigin="anonymous">
@@ -165,51 +166,49 @@
     <!-- AR Content anchored to floor marker -->
     <a-entity id="target-marker" mindar-image-target="targetIndex: 0">
 
-      <!-- Sky dome positioned at ceiling height (3 meters up) -->
-      <!-- Hemisphere that only covers the upper view -->
-      <a-sphere
-        id="sky-dome"
-        radius="20"
+      <!-- Sky plane positioned at ceiling height (simplified for mobile) -->
+      <a-plane
+        id="sky-plane"
+        width="10"
+        height="10"
         position="0 3 0"
-        material="src: #skyTexture; side: back; fog: false; transparent: true; opacity: 0.95"
-        geometry="phiStart: 0; phiLength: 90"
-        segments-height="32"
-        segments-width="64">
-      </a-sphere>
+        rotation="-90 0 0"
+        material="src: #skyTexture; fog: false; transparent: true; opacity: 0.9; side: double">
+      </a-plane>
 
-      <!-- Floating Purple Box - "Out Of Reach" (high above) -->
+      <!-- Floating Purple Box - "Out Of Reach" (above marker) -->
       <a-box
-        position="0 7 -5"
-        scale="2 2 2"
+        position="0 2.5 0"
+        scale="0.5 0.5 0.5"
         rotation="0 45 0"
         material="color: #AD50FF; src: #cubeTexture; metalness: 0.3; roughness: 0.7"
         animation="property: rotation; to: 0 405 0; loop: true; dur: 10000; easing: linear"
-        animation__float="property: position; to: 0 8 -5; dir: alternate; loop: true; dur: 4000; easing: easeInOutSine">
+        animation__float="property: position; to: 0 3 0; dir: alternate; loop: true; dur: 4000; easing: easeInOutSine">
       </a-box>
 
       <!-- Additional floating sphere -->
       <a-sphere
-        position="4 8 -7"
-        radius="1"
+        position="1.5 2.8 -0.5"
+        radius="0.3"
         material="color: #4CC3D9; metalness: 0.5; roughness: 0.5"
         animation="property: rotation; to: 360 360 0; loop: true; dur: 20000; easing: linear"
-        animation__float="property: position; to: 4 7 -7; dir: alternate; loop: true; dur: 5000; easing: easeInOutSine">
+        animation__float="property: position; to: 1.5 2.5 -0.5; dir: alternate; loop: true; dur: 5000; easing: easeInOutSine">
       </a-sphere>
 
       <!-- Additional floating cylinder -->
       <a-cylinder
-        position="-3 9 -8"
-        radius="0.7"
-        height="2"
+        position="-1.2 3 -0.3"
+        radius="0.2"
+        height="0.6"
         material="color: #FFC65D; metalness: 0.4; roughness: 0.6"
         rotation="45 0 45"
         animation="property: rotation; to: 405 360 405; loop: true; dur: 15000; easing: linear"
-        animation__float="property: position; to: -3 8 -8; dir: alternate; loop: true; dur: 6000; easing: easeInOutSine">
+        animation__float="property: position; to: -1.2 2.7 -0.3; dir: alternate; loop: true; dur: 6000; easing: easeInOutSine">
       </a-cylinder>
 
       <!-- Atmospheric point lights -->
-      <a-entity light="type: point; intensity: 0.4; color: #AD50FF; distance: 15" position="0 7 -5"></a-entity>
-      <a-entity light="type: point; intensity: 0.3; color: #4CC3D9; distance: 12" position="4 8 -7"></a-entity>
+      <a-entity light="type: point; intensity: 0.4; color: #AD50FF; distance: 5" position="0 2.5 0"></a-entity>
+      <a-entity light="type: point; intensity: 0.3; color: #4CC3D9; distance: 4" position="1.5 2.8 -0.5"></a-entity>
 
     </a-entity>
 
@@ -221,33 +220,34 @@
     const startButton = document.getElementById('startButton');
     const instructions = document.getElementById('instructions');
     const sceneEl = document.querySelector('a-scene');
-    const targetMarker = document.querySelector('#target-marker');
 
-    // Start the AR experience
+    // Start the AR experience (camera will auto-start)
     function startExperience() {
       permissionOverlay.classList.add('hidden');
-
-      // Start MindAR
-      const mindARSystem = sceneEl.systems['mindar-image-system'];
-      mindARSystem.start();
-
-      console.log('Out Of Reach - Marker tracking started');
+      console.log('Out Of Reach - AR experience started (camera auto-starting)');
     }
 
-    // Marker found - update instructions
-    targetMarker.addEventListener('targetFound', () => {
-      console.log('Floor marker found!');
-      instructions.textContent = 'Marker found! Look up at the ceiling to see infinite space';
-      setTimeout(() => {
-        instructions.classList.add('hidden');
-      }, 3000);
-    });
+    // Wait for scene to load, then set up marker events
+    sceneEl.addEventListener('loaded', () => {
+      const targetMarker = document.querySelector('#target-marker');
 
-    // Marker lost - show instructions again
-    targetMarker.addEventListener('targetLost', () => {
-      console.log('Marker lost');
-      instructions.classList.remove('hidden');
-      instructions.textContent = 'Point camera back at the floor marker';
+      // Marker found - update instructions
+      targetMarker.addEventListener('targetFound', () => {
+        console.log('Floor marker found!');
+        instructions.textContent = '✅ Marker found! Look up to see space above';
+        instructions.style.background = 'rgba(76, 195, 217, 0.9)';
+        setTimeout(() => {
+          instructions.classList.add('hidden');
+        }, 3000);
+      });
+
+      // Marker lost - show instructions again
+      targetMarker.addEventListener('targetLost', () => {
+        console.log('Marker lost');
+        instructions.classList.remove('hidden');
+        instructions.style.background = 'rgba(0, 0, 0, 0.8)';
+        instructions.textContent = '👆 Point camera at the marker on the floor';
+      });
     });
 
     // Start button click handler
