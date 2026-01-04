@@ -23,6 +23,22 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     }
 
+    /* Camera video background */
+    #camera-feed {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+    }
+
+    /* Make A-Frame canvas transparent */
+    .a-canvas {
+      background: transparent !important;
+    }
+
     /* Permission Overlay */
     #permissionOverlay {
       position: fixed;
@@ -153,6 +169,9 @@
   </style>
 </head>
 <body>
+  <!-- Camera Feed Background -->
+  <video id="camera-feed" autoplay playsinline></video>
+
   <!-- Portrait Mode Overlay -->
   <div id="orientationOverlay">
     <div id="message">
@@ -173,7 +192,8 @@
 
   <!-- A-Frame Scene -->
   <a-scene
-    renderer="colorManagement: true; antialias: true"
+    renderer="colorManagement: true; antialias: true; alpha: true"
+    background="transparent"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false">
 
@@ -189,12 +209,16 @@
       wasd-controls="enabled: false">
     </a-camera>
 
-    <!-- Sky with space texture -->
-    <a-sky
-      src="#skyTexture"
+    <!-- Hemisphere Dome - Only covers upper view (ceiling) -->
+    <a-sphere
+      radius="50"
+      position="0 1.6 0"
       rotation="0 0 0"
-      material="fog: false">
-    </a-sky>
+      material="src: #skyTexture; side: back; fog: false"
+      geometry="phiStart: 0; phiLength: 90; thetaLength: 360"
+      segments-height="20"
+      segments-width="64">
+    </a-sphere>
 
     <!-- Floating Purple Box - "Out Of Reach" -->
     <a-box
@@ -237,10 +261,11 @@
   </a-scene>
 
   <script>
-    // Out Of Reach - Device orientation and permission handling
+    // Out Of Reach - Camera passthrough and device orientation handling
     const permissionOverlay = document.getElementById('permissionOverlay');
     const orientationOverlay = document.getElementById('orientationOverlay');
     const startButton = document.getElementById('startButton');
+    const cameraFeed = document.getElementById('camera-feed');
 
     // Check device orientation (portrait vs landscape)
     function checkOrientation() {
@@ -256,11 +281,32 @@
       }
     }
 
+    // Start camera feed
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'environment', // Use back camera
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          }
+        });
+        cameraFeed.srcObject = stream;
+        console.log('Camera feed started');
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+        alert('Camera access is required for this AR experience.');
+      }
+    }
+
     // Request device orientation permissions (iOS 13+)
     async function requestPermissions() {
       try {
+        // Request camera permission
+        await startCamera();
+
+        // Request device orientation permission (iOS 13+)
         if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-          // iOS 13+ requires explicit permission
           const permission = await DeviceOrientationEvent.requestPermission();
 
           if (permission === 'granted') {
@@ -273,8 +319,8 @@
           startExperience();
         }
       } catch (error) {
-        console.error('Error requesting device orientation permission:', error);
-        // Try to start anyway on non-iOS devices
+        console.error('Error requesting permissions:', error);
+        // Try to start anyway
         startExperience();
       }
     }
@@ -293,7 +339,7 @@
       // Also listen to resize as backup
       window.addEventListener('resize', checkOrientation);
 
-      console.log('Out Of Reach - Experience started');
+      console.log('Out Of Reach - AR experience started with camera passthrough');
     }
 
     // Start button click handler
