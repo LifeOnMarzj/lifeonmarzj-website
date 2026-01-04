@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camera Test</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    #camera {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+    }
+    #status {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      z-index: 999;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <video id="camera" autoplay playsinline></video>
+
+  <div id="status">
+    <h2>Camera Test</h2>
+    <p id="message">Click button to start camera</p>
+    <button onclick="startCamera()">Start Camera</button>
+  </div>
+
+  <script>
+    const video = document.getElementById('camera');
+    const message = document.getElementById('message');
+
+    async function startCamera() {
+      message.textContent = 'Requesting camera permission...';
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'environment',
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          }
+        });
+
+        video.srcObject = stream;
+        message.textContent = '✅ Camera started! You should see video feed.';
+
+      } catch (error) {
+        message.textContent = '❌ Error: ' + error.message;
+        console.error('Camera error:', error);
+      }
+    }
+  </script>
+</body>
+</html>
