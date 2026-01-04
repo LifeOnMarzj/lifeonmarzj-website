@@ -6,9 +6,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Out Of Reach - Prison Cell Experience</title>
 
-  <!-- A-Frame and MindAR -->
+  <!-- A-Frame Library -->
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
   <style>
     * {
@@ -21,6 +20,25 @@
       margin: 0;
       overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    /* Camera feed background */
+    #camera-feed {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+    }
+
+    /* A-Frame canvas on top */
+    .a-canvas {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      z-index: 2 !important;
     }
 
     /* Permission Overlay */
@@ -129,131 +147,214 @@
   </style>
 </head>
 <body>
+  <!-- Camera Feed Background -->
+  <video id="camera-feed" autoplay playsinline></video>
+
   <!-- Permission Request Overlay -->
   <div id="permissionOverlay">
     <div id="permissionMessage">
       <h2>Out Of Reach</h2>
       <p class="subtitle">A Prison Cell Sky Experience</p>
-      <p>Point your camera at the marker on the floor, then look up at the ceiling to explore infinite space.</p>
+      <p>Look up at the ceiling to break through the boundaries of this space and explore the cosmos beyond.</p>
       <button id="startButton">Begin Journey</button>
     </div>
   </div>
 
   <!-- Instructions -->
-  <div class="instructions" id="instructions">
-    Point your camera at the marker on the floor
+  <div class="instructions hidden" id="instructions">
+    Point your phone up at the ceiling
   </div>
 
-  <!-- A-Frame Scene with MindAR -->
+  <!-- A-Frame Scene -->
   <a-scene
-    mindar-image="imageTargetSrc: ../assets/targets/prison-cell-marker.mind; autoStart: true; uiScanning: no; filterMinCF: 0.0001; filterBeta: 0.001;"
-    color-space="sRGB"
-    renderer="colorManagement: true; physicallyCorrectLights: true; alpha: false"
+    renderer="colorManagement: true; antialias: true; alpha: true"
+    background="transparent"
     vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: false"
-    embedded>
+    device-orientation-permission-ui="enabled: false">
 
     <a-assets>
       <img id="skyTexture" src="../assets/space.png" crossorigin="anonymous">
       <img id="cubeTexture" src="https://cdn.8thwall.com/web/assets/cube-texture.png" crossorigin="anonymous">
     </a-assets>
 
-    <!-- Camera -->
-    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <!-- Camera with look controls -->
+    <a-camera
+      position="0 0 0"
+      look-controls="enabled: true; touchEnabled: true"
+      wasd-controls="enabled: false">
+    </a-camera>
 
-    <!-- Lights -->
-    <a-entity light="type: ambient; intensity: 0.7"></a-entity>
-    <a-entity light="type: directional; intensity: 0.5" position="2 4 2"></a-entity>
+    <!-- Sky container - only visible when looking up -->
+    <a-entity id="sky-container">
 
-    <!-- AR Content anchored to floor marker -->
-    <a-entity id="target-marker" mindar-image-target="targetIndex: 0">
+      <!-- Full sky sphere -->
+      <a-sky
+        id="space-sky"
+        src="#skyTexture"
+        rotation="0 0 0"
+        material="fog: false; opacity: 0"
+        class="sky-element">
+      </a-sky>
 
-      <!-- Sky plane positioned at ceiling height (large and visible) -->
-      <a-plane
-        id="sky-plane"
-        width="20"
-        height="20"
-        position="0 2.5 0"
-        rotation="-90 0 0"
-        material="src: #skyTexture; fog: false; transparent: false; opacity: 1; side: double">
-      </a-plane>
-
-      <!-- Floating Purple Box - "Out Of Reach" (above marker) -->
+      <!-- Floating Purple Box - "Out Of Reach" -->
       <a-box
-        position="0 2.5 0"
-        scale="0.5 0.5 0.5"
+        position="0 15 -15"
+        scale="5 5 5"
         rotation="0 45 0"
-        material="color: #AD50FF; src: #cubeTexture; metalness: 0.3; roughness: 0.7"
+        material="color: #AD50FF; src: #cubeTexture; metalness: 0.3; roughness: 0.7; opacity: 0"
         animation="property: rotation; to: 0 405 0; loop: true; dur: 10000; easing: linear"
-        animation__float="property: position; to: 0 3 0; dir: alternate; loop: true; dur: 4000; easing: easeInOutSine">
+        animation__float="property: position; to: 0 17 -15; dir: alternate; loop: true; dur: 4000; easing: easeInOutSine"
+        class="sky-element">
       </a-box>
 
       <!-- Additional floating sphere -->
       <a-sphere
-        position="1.5 2.8 -0.5"
-        radius="0.3"
-        material="color: #4CC3D9; metalness: 0.5; roughness: 0.5"
+        position="10 18 -20"
+        radius="2.5"
+        material="color: #4CC3D9; metalness: 0.5; roughness: 0.5; opacity: 0"
         animation="property: rotation; to: 360 360 0; loop: true; dur: 20000; easing: linear"
-        animation__float="property: position; to: 1.5 2.5 -0.5; dir: alternate; loop: true; dur: 5000; easing: easeInOutSine">
+        animation__float="property: position; to: 10 16 -20; dir: alternate; loop: true; dur: 5000; easing: easeInOutSine"
+        class="sky-element">
       </a-sphere>
 
       <!-- Additional floating cylinder -->
       <a-cylinder
-        position="-1.2 3 -0.3"
-        radius="0.2"
-        height="0.6"
-        material="color: #FFC65D; metalness: 0.4; roughness: 0.6"
+        position="-8 20 -25"
+        radius="1.5"
+        height="4"
+        material="color: #FFC65D; metalness: 0.4; roughness: 0.6; opacity: 0"
         rotation="45 0 45"
         animation="property: rotation; to: 405 360 405; loop: true; dur: 15000; easing: linear"
-        animation__float="property: position; to: -1.2 2.7 -0.3; dir: alternate; loop: true; dur: 6000; easing: easeInOutSine">
+        animation__float="property: position; to: -8 18 -25; dir: alternate; loop: true; dur: 6000; easing: easeInOutSine"
+        class="sky-element">
       </a-cylinder>
 
-      <!-- Atmospheric point lights -->
-      <a-entity light="type: point; intensity: 0.4; color: #AD50FF; distance: 5" position="0 2.5 0"></a-entity>
-      <a-entity light="type: point; intensity: 0.3; color: #4CC3D9; distance: 4" position="1.5 2.8 -0.5"></a-entity>
+      <!-- Ambient Light -->
+      <a-entity light="type: ambient; intensity: 0.8"></a-entity>
+
+      <!-- Directional Light -->
+      <a-entity light="type: directional; intensity: 0.6" position="1 1 0"></a-entity>
+
+      <!-- Point lights for atmosphere -->
+      <a-entity light="type: point; intensity: 0.5; color: #AD50FF" position="0 15 -15"></a-entity>
+      <a-entity light="type: point; intensity: 0.3; color: #4CC3D9" position="10 18 -20"></a-entity>
 
     </a-entity>
 
   </a-scene>
 
   <script>
-    // Out Of Reach - Marker-based AR with sky effect
+    // Out Of Reach - Gyroscope-based sky effect
     const permissionOverlay = document.getElementById('permissionOverlay');
     const startButton = document.getElementById('startButton');
     const instructions = document.getElementById('instructions');
-    const sceneEl = document.querySelector('a-scene');
+    const cameraFeed = document.getElementById('camera-feed');
 
-    // Start the AR experience (camera will auto-start)
-    function startExperience() {
-      permissionOverlay.classList.add('hidden');
-      console.log('Out Of Reach - AR experience started (camera auto-starting)');
+    let deviceOrientationGranted = false;
+    let skyVisible = false;
+
+    // Start camera feed
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'environment',
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          }
+        });
+        cameraFeed.srcObject = stream;
+        console.log('Camera feed started');
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+        alert('Camera access is required for this AR experience.');
+      }
     }
 
-    // Wait for scene to load, then set up marker events
-    sceneEl.addEventListener('loaded', () => {
-      const targetMarker = document.querySelector('#target-marker');
+    // Request device orientation permissions (iOS 13+)
+    async function requestPermissions() {
+      try {
+        // Request camera permission
+        await startCamera();
 
-      // Marker found - hide instructions immediately
-      targetMarker.addEventListener('targetFound', () => {
-        console.log('Floor marker found!');
-        instructions.textContent = '✅ Marker found! Move around to explore';
-        instructions.style.background = 'rgba(76, 195, 217, 0.8)';
-        setTimeout(() => {
-          instructions.classList.add('hidden');
-        }, 2000);
-      });
+        // Request device orientation permission (iOS 13+)
+        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+          const permission = await DeviceOrientationEvent.requestPermission();
 
-      // Marker lost - show instructions again
-      targetMarker.addEventListener('targetLost', () => {
-        console.log('Marker lost');
-        instructions.classList.remove('hidden');
-        instructions.style.background = 'rgba(0, 0, 0, 0.7)';
-        instructions.textContent = 'Point camera at the floor marker';
-      });
-    });
+          if (permission === 'granted') {
+            deviceOrientationGranted = true;
+            startExperience();
+          } else {
+            alert('Device orientation permission is required for this experience.');
+          }
+        } else {
+          // Android or older iOS - no permission needed
+          deviceOrientationGranted = true;
+          startExperience();
+        }
+      } catch (error) {
+        console.error('Error requesting permissions:', error);
+        startExperience();
+      }
+    }
+
+    // Start the AR experience
+    function startExperience() {
+      permissionOverlay.classList.add('hidden');
+      instructions.classList.remove('hidden');
+
+      // Listen to device orientation
+      window.addEventListener('deviceorientation', handleOrientation);
+
+      console.log('Out Of Reach - Gyroscope tracking started');
+    }
+
+    // Handle device orientation
+    function handleOrientation(event) {
+      // Beta is the front-to-back tilt in degrees
+      // When phone points up: beta is negative (around -60 to -90)
+      // When phone is level: beta is around 0
+      // When phone points down: beta is positive
+
+      const beta = event.beta; // -180 to 180
+      const gamma = event.gamma; // -90 to 90
+
+      // Get all sky elements
+      const skyElements = document.querySelectorAll('.sky-element');
+
+      // Show sky effect when phone tilts up (beta < -30 means looking up)
+      if (beta < -30) {
+        // Looking up at ceiling
+        if (!skyVisible) {
+          skyVisible = true;
+          instructions.textContent = '✨ Look around the cosmos';
+          instructions.style.background = 'rgba(76, 195, 217, 0.8)';
+
+          // Fade in sky elements
+          skyElements.forEach(el => {
+            el.setAttribute('material', 'opacity', 1);
+          });
+        }
+      } else {
+        // Looking at walls or floor
+        if (skyVisible) {
+          skyVisible = false;
+          instructions.textContent = 'Point your phone up at the ceiling';
+          instructions.style.background = 'rgba(0, 0, 0, 0.7)';
+
+          // Fade out sky elements
+          skyElements.forEach(el => {
+            const currentMaterial = el.getAttribute('material');
+            if (currentMaterial) {
+              el.setAttribute('material', 'opacity', 0);
+            }
+          });
+        }
+      }
+    }
 
     // Start button click handler
-    startButton.addEventListener('click', startExperience);
+    startButton.addEventListener('click', requestPermissions);
 
     // Prevent body scroll on mobile
     document.body.addEventListener('touchmove', function(e) {
