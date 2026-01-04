@@ -6,9 +6,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Out Of Reach - Prison Cell Experience</title>
 
-  <!-- A-Frame Library -->
+  <!-- A-Frame and MindAR -->
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
   <style>
     * {
@@ -21,22 +21,6 @@
       margin: 0;
       overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    }
-
-    /* Camera video background */
-    #camera-feed {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      z-index: -1;
-    }
-
-    /* Make A-Frame canvas transparent */
-    .a-canvas {
-      background: transparent !important;
     }
 
     /* Permission Overlay */
@@ -110,45 +94,20 @@
       transform: translateY(0);
     }
 
-    /* Orientation Overlay */
-    #orientationOverlay {
-      z-index: 998;
-      height: 100%;
-      width: 100%;
+    /* Instructions overlay */
+    .instructions {
       position: fixed;
-      top: 0;
-      left: 0;
-      backdrop-filter: blur(30px);
-      -webkit-backdrop-filter: blur(30px);
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
       background: rgba(0, 0, 0, 0.8);
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #message {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 80%;
-      max-width: 400px;
       color: white;
-      font-size: 1.2em;
+      padding: 15px 25px;
+      border-radius: 10px;
+      font-size: 14px;
       text-align: center;
-    }
-
-    #message img {
-      margin-bottom: 20px;
-      animation: rotate-phone 2s ease-in-out infinite;
-    }
-
-    @keyframes rotate-phone {
-      0%, 100% {
-        transform: rotate(0deg);
-      }
-      50% {
-        transform: rotate(90deg);
-      }
+      z-index: 1000;
+      backdrop-filter: blur(10px);
     }
 
     @keyframes fadeIn {
@@ -162,38 +121,32 @@
       }
     }
 
-    /* Hide overlays when not needed */
     .hidden {
       display: none !important;
     }
   </style>
 </head>
 <body>
-  <!-- Camera Feed Background -->
-  <video id="camera-feed" autoplay playsinline></video>
-
-  <!-- Portrait Mode Overlay -->
-  <div id="orientationOverlay">
-    <div id="message">
-      <img src="../assets/rotate.svg" width="100px" alt="Rotate phone" onerror="this.style.display='none'" />
-      Please rotate the phone to portrait mode for the best experience.
-    </div>
-  </div>
-
   <!-- Permission Request Overlay -->
   <div id="permissionOverlay">
     <div id="permissionMessage">
       <h2>Out Of Reach</h2>
-      <p class="subtitle">An Immersive Sky Experience</p>
-      <p>Look up at the ceiling to break through the boundaries of this space and explore the cosmos beyond.</p>
+      <p class="subtitle">A Prison Cell Sky Experience</p>
+      <p>Point your camera at the marker on the floor, then look up at the ceiling to explore infinite space.</p>
       <button id="startButton">Begin Journey</button>
     </div>
   </div>
 
-  <!-- A-Frame Scene -->
+  <!-- Instructions -->
+  <div class="instructions" id="instructions">
+    Point your camera at the marker on the floor
+  </div>
+
+  <!-- A-Frame Scene with MindAR -->
   <a-scene
-    renderer="colorManagement: true; antialias: true; alpha: true"
-    background="transparent"
+    mindar-image="imageTargetSrc: ../assets/targets/prison-cell-marker.mind; autoStart: false; uiScanning: no;"
+    color-space="sRGB"
+    renderer="colorManagement: true; physicallyCorrectLights: true"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false">
 
@@ -202,148 +155,103 @@
       <img id="cubeTexture" src="https://cdn.8thwall.com/web/assets/cube-texture.png" crossorigin="anonymous">
     </a-assets>
 
-    <!-- Camera with look controls -->
-    <a-camera
-      position="0 1.6 0"
-      look-controls="enabled: true; touchEnabled: true"
-      wasd-controls="enabled: false">
-    </a-camera>
+    <!-- Camera -->
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <!-- Hemisphere Dome - Only covers upper view (ceiling) -->
-    <a-sphere
-      radius="50"
-      position="0 1.6 0"
-      rotation="0 0 0"
-      material="src: #skyTexture; side: back; fog: false"
-      geometry="phiStart: 0; phiLength: 90; thetaLength: 360"
-      segments-height="20"
-      segments-width="64">
-    </a-sphere>
+    <!-- Lights -->
+    <a-entity light="type: ambient; intensity: 0.7"></a-entity>
+    <a-entity light="type: directional; intensity: 0.5" position="2 4 2"></a-entity>
 
-    <!-- Floating Purple Box - "Out Of Reach" -->
-    <a-box
-      position="0 10 -10"
-      scale="5 5 5"
-      rotation="0 45 0"
-      material="color: #AD50FF; src: #cubeTexture; metalness: 0.3; roughness: 0.7"
-      animation="property: rotation; to: 0 405 0; loop: true; dur: 10000; easing: linear"
-      animation__float="property: position; to: 0 12 -10; dir: alternate; loop: true; dur: 4000; easing: easeInOutSine">
-    </a-box>
+    <!-- AR Content anchored to floor marker -->
+    <a-entity id="target-marker" mindar-image-target="targetIndex: 0">
 
-    <!-- Additional floating objects for depth -->
-    <a-sphere
-      position="8 15 -15"
-      radius="2"
-      material="color: #4CC3D9; metalness: 0.5; roughness: 0.5"
-      animation="property: rotation; to: 360 360 0; loop: true; dur: 20000; easing: linear"
-      animation__float="property: position; to: 8 13 -15; dir: alternate; loop: true; dur: 5000; easing: easeInOutSine">
-    </a-sphere>
+      <!-- Sky dome positioned at ceiling height (3 meters up) -->
+      <!-- Hemisphere that only covers the upper view -->
+      <a-sphere
+        id="sky-dome"
+        radius="20"
+        position="0 3 0"
+        material="src: #skyTexture; side: back; fog: false; transparent: true; opacity: 0.95"
+        geometry="phiStart: 0; phiLength: 90"
+        segments-height="32"
+        segments-width="64">
+      </a-sphere>
 
-    <a-cylinder
-      position="-7 18 -20"
-      radius="1.5"
-      height="4"
-      material="color: #FFC65D; metalness: 0.4; roughness: 0.6"
-      rotation="45 0 45"
-      animation="property: rotation; to: 405 360 405; loop: true; dur: 15000; easing: linear"
-      animation__float="property: position; to: -7 16 -20; dir: alternate; loop: true; dur: 6000; easing: easeInOutSine">
-    </a-cylinder>
+      <!-- Floating Purple Box - "Out Of Reach" (high above) -->
+      <a-box
+        position="0 7 -5"
+        scale="2 2 2"
+        rotation="0 45 0"
+        material="color: #AD50FF; src: #cubeTexture; metalness: 0.3; roughness: 0.7"
+        animation="property: rotation; to: 0 405 0; loop: true; dur: 10000; easing: linear"
+        animation__float="property: position; to: 0 8 -5; dir: alternate; loop: true; dur: 4000; easing: easeInOutSine">
+      </a-box>
 
-    <!-- Ambient Light -->
-    <a-entity light="type: ambient; intensity: 0.8"></a-entity>
+      <!-- Additional floating sphere -->
+      <a-sphere
+        position="4 8 -7"
+        radius="1"
+        material="color: #4CC3D9; metalness: 0.5; roughness: 0.5"
+        animation="property: rotation; to: 360 360 0; loop: true; dur: 20000; easing: linear"
+        animation__float="property: position; to: 4 7 -7; dir: alternate; loop: true; dur: 5000; easing: easeInOutSine">
+      </a-sphere>
 
-    <!-- Directional Light -->
-    <a-entity light="type: directional; intensity: 0.6" position="1 1 0"></a-entity>
+      <!-- Additional floating cylinder -->
+      <a-cylinder
+        position="-3 9 -8"
+        radius="0.7"
+        height="2"
+        material="color: #FFC65D; metalness: 0.4; roughness: 0.6"
+        rotation="45 0 45"
+        animation="property: rotation; to: 405 360 405; loop: true; dur: 15000; easing: linear"
+        animation__float="property: position; to: -3 8 -8; dir: alternate; loop: true; dur: 6000; easing: easeInOutSine">
+      </a-cylinder>
 
-    <!-- Point lights for atmosphere -->
-    <a-entity light="type: point; intensity: 0.5; color: #AD50FF" position="0 10 -10"></a-entity>
-    <a-entity light="type: point; intensity: 0.3; color: #4CC3D9" position="8 15 -15"></a-entity>
+      <!-- Atmospheric point lights -->
+      <a-entity light="type: point; intensity: 0.4; color: #AD50FF; distance: 15" position="0 7 -5"></a-entity>
+      <a-entity light="type: point; intensity: 0.3; color: #4CC3D9; distance: 12" position="4 8 -7"></a-entity>
+
+    </a-entity>
+
   </a-scene>
 
   <script>
-    // Out Of Reach - Camera passthrough and device orientation handling
+    // Out Of Reach - Marker-based AR with sky effect
     const permissionOverlay = document.getElementById('permissionOverlay');
-    const orientationOverlay = document.getElementById('orientationOverlay');
     const startButton = document.getElementById('startButton');
-    const cameraFeed = document.getElementById('camera-feed');
-
-    // Check device orientation (portrait vs landscape)
-    function checkOrientation() {
-      const orientation = window.orientation || 0;
-
-      // Portrait mode (0 or 180)
-      if (orientation === 0 || orientation === 180) {
-        orientationOverlay.classList.add('hidden');
-      }
-      // Landscape mode (90 or -90)
-      else if (orientation === 90 || orientation === -90) {
-        orientationOverlay.classList.remove('hidden');
-      }
-    }
-
-    // Start camera feed
-    async function startCamera() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: 'environment', // Use back camera
-            width: { ideal: 1920 },
-            height: { ideal: 1080 }
-          }
-        });
-        cameraFeed.srcObject = stream;
-        console.log('Camera feed started');
-      } catch (error) {
-        console.error('Error accessing camera:', error);
-        alert('Camera access is required for this AR experience.');
-      }
-    }
-
-    // Request device orientation permissions (iOS 13+)
-    async function requestPermissions() {
-      try {
-        // Request camera permission
-        await startCamera();
-
-        // Request device orientation permission (iOS 13+)
-        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-          const permission = await DeviceOrientationEvent.requestPermission();
-
-          if (permission === 'granted') {
-            startExperience();
-          } else {
-            alert('Device orientation permission is required for this experience.');
-          }
-        } else {
-          // Android or older iOS - no permission needed
-          startExperience();
-        }
-      } catch (error) {
-        console.error('Error requesting permissions:', error);
-        // Try to start anyway
-        startExperience();
-      }
-    }
+    const instructions = document.getElementById('instructions');
+    const sceneEl = document.querySelector('a-scene');
+    const targetMarker = document.querySelector('#target-marker');
 
     // Start the AR experience
     function startExperience() {
-      // Hide permission overlay
       permissionOverlay.classList.add('hidden');
 
-      // Check orientation
-      checkOrientation();
+      // Start MindAR
+      const mindARSystem = sceneEl.systems['mindar-image-system'];
+      mindARSystem.start();
 
-      // Enable orientation change listener
-      window.addEventListener('orientationchange', checkOrientation);
-
-      // Also listen to resize as backup
-      window.addEventListener('resize', checkOrientation);
-
-      console.log('Out Of Reach - AR experience started with camera passthrough');
+      console.log('Out Of Reach - Marker tracking started');
     }
 
+    // Marker found - update instructions
+    targetMarker.addEventListener('targetFound', () => {
+      console.log('Floor marker found!');
+      instructions.textContent = 'Marker found! Look up at the ceiling to see infinite space';
+      setTimeout(() => {
+        instructions.classList.add('hidden');
+      }, 3000);
+    });
+
+    // Marker lost - show instructions again
+    targetMarker.addEventListener('targetLost', () => {
+      console.log('Marker lost');
+      instructions.classList.remove('hidden');
+      instructions.textContent = 'Point camera back at the floor marker';
+    });
+
     // Start button click handler
-    startButton.addEventListener('click', requestPermissions);
+    startButton.addEventListener('click', startExperience);
 
     // Prevent body scroll on mobile
     document.body.addEventListener('touchmove', function(e) {
